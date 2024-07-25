@@ -14,7 +14,14 @@ BEGIN
     SELECT @status;
 END;
 select * from Adminn
-
+-- Tạo Stored Procedure
+CREATE PROCEDURE GetQuyenID 
+    @TenQuyen NVARCHAR(255)
+AS
+BEGIN
+    -- Trả về ID quyền tương ứng
+    SELECT IDQuyen FROM Quyen WHERE TenQuyen = @TenQuyen;
+END
 --------------------------------------San Pham-----------------------------------------------------
 CREATE OR ALTER PROCEDURE Insert_SanPham 
 @idsanpham int, @ten nvarchar(50), @mieuta nvarchar(max), @gia decimal(18,2), @soluong int
@@ -209,17 +216,21 @@ BEGIN
     WHERE Ten LIKE '%' + @Ten + '%';
 END;
 
-CREATE OR ALTER PROCEDURE ThongKeTonKho
+-- Stored procedure để thống kê số lượng hàng tồn kho
+CREATE PROCEDURE ThongKeTonKho
 AS
 BEGIN
-    -- Kết hợp dữ liệu từ bảng SanPham và HangTonKho
-    SELECT
+    SELECT 
         s.Ten AS TenSanPham,
-        COALESCE(h.SoLuong, 0) AS SoLuongTonKho  -- Sử dụng COALESCE để xử lý trường hợp không có hàng tồn kho
-    FROM
+        SUM(htk.SoLuong) AS SoLuongTonKho
+    FROM 
         SanPham s
-    LEFT JOIN
-        HangTonKho h ON s.IDSanPham = h.IDSanPham
-    ORDER BY
-        s.Ten; -- Sắp xếp theo tên sản phẩm
+    JOIN 
+        HangTonKho htk ON s.IDSanPham = htk.IDSanPham
+    GROUP BY 
+        s.IDSanPham, s.Ten
+    ORDER BY 
+        s.Ten;
 END;
+GO
+
